@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Quiz Bot</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+
+</head>
+
+<body>
+
+<h1>Welcome to PREPAi</h1><br>
+<h2>See where you are!</h2>
+
+{% if msg %}
+<p class="msg">{{msg}}</p>
+{% endif %}
+
+<a href="/login">
+<button>Login</button>
+</a>
+
+<a href="/signup">
+<button>Signup</button>
+</a>
+
+<a href="/quiz">
+<button>Start Quiz</button>
+</a>
+
+{% if session.user %}
+<p>Logged in as {{session.user}}</p>
+<a href="/logout"><button>Logout</button></a>
+{% endif %}
+
+</body>
+</html>

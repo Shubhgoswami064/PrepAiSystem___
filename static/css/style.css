@@ -1,0 +1,87 @@
+body {
+  margin:0;
+  font-family:system-ui;
+  background:linear-gradient(135deg,#4f46e5,#06b6d4);
+}
+
+/* glass navbar */
+.topbar {
+  display:flex;
+  justify-content:space-between;
+  padding:15px;
+  backdrop-filter:blur(10px);
+  background:rgba(255,255,255,0.2);
+  color:white;
+}
+
+.main {
+  display:flex;
+  justify-content:center;
+  margin-top:80px;
+}
+
+/* glass card */
+.card {
+  background:rgba(255,255,255,0.2);
+  backdrop-filter:blur(15px);
+  padding:25px;
+  width:350px;
+  border-radius:15px;
+  color:white;
+  animation:fade 0.5s ease;
+}
+
+@keyframes fade {
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1}
+}
+
+button,select {
+  width:100%;
+  margin:8px 0;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+}
+
+button {
+  background:#4f46e5;
+  color:white;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+button:hover {
+  transform:scale(1.05);
+}
+
+#options button {
+  background:white;
+  color:black;
+}
+
+.correct {background:green !important;color:white}
+.wrong {background:red !important;color:white}
+
+/* modal */
+.modal {
+  display:none;
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.6);
+}
+
+.modal-content {
+  background:white;
+  color:black;
+  padding:20px;
+  margin:20% auto;
+  width:300px;
+  border-radius:10px;
+}
+
+/* responsive */
+@media(max-width:500px){
+  .card{width:90%}
+}

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto h-[80vh] flex flex-col space-y-6 py-6 animate-fade-in-up">
+    <div class="text-center relative">
+        <h2 class="text-4xl md:text-5xl font-black text-white mb-2 tracking-tight">Prep<span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">AI</span> Tutor</h2>
+        <p class="text-slate-400 text-sm font-medium">Your expert personal tutor for competitive exams.</p>
+    </div>
+
+    <div class="glass flex-1 p-6 md:p-8 rounded-[2.5rem] flex flex-col space-y-4 overflow-hidden relative shadow-2xl">
+        <!-- Glow -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+        <div id="chat-box" class="flex-1 overflow-y-auto space-y-6 pr-4 custom-scrollbar relative z-10 pb-4">
+            <!-- Initial Message -->
+            <div class="flex gap-4 animate-fade-in-up">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30 shrink-0">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm p-5 text-sm md:text-base text-slate-200 leading-relaxed shadow-lg">
+                    Hello <span class="font-bold text-indigo-300">{{ name }}</span>! I am your PrepAI Tutor. What topic or question would you like to discuss today?
+                </div>
+            </div>
+        </div>
+
+        <div class="relative mt-4 z-10 animate-fade-in-up">
+            <input type="text" id="user-input" placeholder="Ask a question..." class="w-full bg-black/50 border border-white/10 p-5 pl-6 pr-20 rounded-2xl focus:border-indigo-500 focus:bg-indigo-500/5 focus:outline-none text-slate-200 placeholder-slate-500 transition-all shadow-inner text-base">
+            <button onclick="sendMessage()" id="send-btn" class="absolute right-3 top-3 bottom-3 aspect-square bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl hover:shadow-lg hover:shadow-indigo-500/40 transition-all flex items-center justify-center hover:-translate-y-0.5 active:translate-y-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white transform rotate-90" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chatHistory = [];
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    }
+    
+    // Attach listener
+    document.getElementById('user-input').addEventListener('keypress', handleKeyPress);
+
+    async function sendMessage() {
+        const input = document.getElementById('user-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        input.value = '';
+        document.getElementById('send-btn').disabled = true;
+
+        addMessageToUI('user', text);
+        const userMsg = { role: 'user', content: text };
+        const loadingId = addLoadingIndicator();
+
+        try {
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text, history: chatHistory })
+            });
+            const data = await response.json();
+            
+            document.getElementById(loadingId).remove();
+
+            if (data.error) {
+                addMessageToUI('ai', 'Sorry, I encountered an error. Please try again.');
+            } else {
+                addMessageToUI('ai', data.response);
+                chatHistory.push(userMsg);
+                chatHistory.push({ role: 'model', content: data.response });
+            }
+        } catch (error) {
+            document.getElementById(loadingId).remove();
+            addMessageToUI('ai', 'Network error. Please check your connection.');
+        }
+
+        document.getElementById('send-btn').disabled = false;
+        input.focus();
+    }
+
+    function addMessageToUI(role, text) {
+        const chatBox = document.getElementById('chat-box');
+        const div = document.createElement('div');
+        div.className = "flex gap-4 animate-fade-in-up " + (role === 'user' ? "flex-row-reverse" : "");
+        
+        let avatar = '';
+        if (role === 'ai') {
+            avatar = `<div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30 shrink-0"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>`;
+        } else {
+            avatar = `<div class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center font-bold text-white shadow-lg shrink-0">ME</div>`;
+        }
+        
+        let formattedText = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong class="text-indigo-300">$1</strong>');
+
+        div.innerHTML = `
+            ${avatar}
+            <div class="${role === 'user' ? 'bg-indigo-600/80 border border-indigo-500/50 rounded-tr-sm' : 'bg-white/5 border border-white/10 rounded-tl-sm'} rounded-2xl p-5 text-sm md:text-base text-slate-200 leading-relaxed shadow-lg max-w-[85%]">
+                ${formattedText}
+            </div>
+        `;
+        
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function addLoadingIndicator() {
+        const id = 'loading-' + Date.now();
+        const chatBox = document.getElementById('chat-box');
+        const div = document.createElement('div');
+        div.id = id;
+        div.className = "flex gap-4 animate-fade-in-up";
+        div.innerHTML = `
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30 shrink-0"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm p-5 text-sm text-slate-200 flex space-x-2 items-center shadow-lg">
+                <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            </div>
+        `;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return id;
+    }
+</script>
+{% endblock %}

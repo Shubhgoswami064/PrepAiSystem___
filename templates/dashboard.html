@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="max-w-6xl mx-auto py-8 animate-fade-in-up">
+    <div class="mb-10 text-center md:text-left">
+        <h2 class="text-4xl md:text-5xl font-black text-white mb-2">Welcome to your <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Dashboard</span></h2>
+        <p class="text-slate-400 text-lg">Generate quizzes and track your performance.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Quiz Generator -->
+        <div class="glass p-8 rounded-[2rem] text-left space-y-6 relative overflow-hidden shadow-xl md:col-span-1 h-fit">
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/20 rounded-full blur-[50px] pointer-events-none"></div>
+            
+            <h3 class="text-2xl font-bold text-white relative z-10 flex items-center gap-2">
+                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                New Drill
+            </h3>
+
+            <div class="space-y-2 relative z-10">
+                <label class="text-xs font-bold text-indigo-400 uppercase tracking-widest pl-1">Target Exam</label>
+                <div class="relative">
+                    <select id="exam" class="w-full bg-black/40 border border-white/10 p-4 rounded-2xl focus:border-indigo-500 focus:bg-indigo-500/5 focus:outline-none transition-all appearance-none cursor-pointer text-white">
+                        <option class="bg-[#0f172a] text-white">UPSC</option>
+                        <option class="bg-[#0f172a] text-white">JEE</option>
+                        <option class="bg-[#0f172a] text-white">NEET</option>
+                        <option class="bg-[#0f172a] text-white">SSC CGL</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-2 relative z-10">
+                <label class="text-xs font-bold text-indigo-400 uppercase tracking-widest pl-1">Subject / Topic</label>
+                <input type="text" id="subject" placeholder="e.g. Modern Physics" class="w-full bg-black/40 border border-white/10 p-4 rounded-2xl focus:border-indigo-500 focus:bg-indigo-500/5 focus:outline-none transition-all text-white placeholder-slate-600">
+            </div>
+
+            <button id="gen-btn" onclick="startQuiz()" class="w-full btn-gradient py-4 rounded-2xl font-black text-white text-lg shadow-xl shadow-indigo-500/20 hover:-translate-y-1 transition-all mt-2 relative z-10">
+                Generate Quiz
+            </button>
+        </div>
+
+        <!-- Analytics -->
+        <div class="glass p-8 rounded-[2rem] text-left relative overflow-hidden shadow-xl md:col-span-2 flex flex-col">
+            <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/10 rounded-full blur-[60px] pointer-events-none"></div>
+            
+            <h3 class="text-2xl font-bold text-white mb-6 relative z-10 flex items-center gap-2">
+                <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Performance Analytics
+            </h3>
+
+            <div id="no-data" class="hidden flex-1 flex flex-col items-center justify-center text-slate-500 relative z-10 py-10">
+                <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <p>No quiz data yet. Generate a quiz to start tracking!</p>
+            </div>
+
+            <div id="analytics-content" class="hidden flex-1 flex flex-col relative z-10">
+                <div class="w-full h-64 mb-8">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-auto">
+                    <div class="bg-red-500/10 border border-red-500/20 rounded-2xl p-5">
+                        <h4 class="text-red-400 font-bold uppercase tracking-widest text-xs mb-3">Weak Subjects (< 60%)</h4>
+                        <div id="weak-list" class="flex flex-wrap gap-2 mb-4"></div>
+                        <button onclick="practiceWeakest()" class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-300 font-bold py-2 rounded-xl transition-colors text-sm">Practice Weakest</button>
+                    </div>
+                    <div class="bg-green-500/10 border border-green-500/20 rounded-2xl p-5">
+                        <h4 class="text-green-400 font-bold uppercase tracking-widest text-xs mb-3">Strong Subjects (>= 60%)</h4>
+                        <div id="strong-list" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+let weakSubjectsList = [];
+
+async function loadAnalytics() {
+    try {
+        const response = await fetch('/analytics-data');
+        const data = await response.json();
+        
+        if (data.error || data.length === 0) {
+            document.getElementById('no-data').classList.remove('hidden');
+            return;
+        }
+        
+        document.getElementById('analytics-content').classList.remove('hidden');
+
+        const labels = data.map(d => d.subject);
+        const scores = data.map(d => d.percentage);
+        
+        // Populate Strong/Weak
+        const weakList = document.getElementById('weak-list');
+        const strongList = document.getElementById('strong-list');
+        weakList.innerHTML = '';
+        strongList.innerHTML = '';
+        
+        data.forEach(d => {
+            const badge = document.createElement('span');
+            badge.className = "px-3 py-1 rounded-lg text-xs font-bold border";
+            badge.innerText = `${d.subject} (${d.percentage}%)`;
+            
+            if (d.percentage < 60) {
+                badge.classList.add('bg-red-500/20', 'border-red-500/30', 'text-red-300');
+                weakList.appendChild(badge);
+                weakSubjectsList.push(d.subject);
+            } else {
+                badge.classList.add('bg-green-500/20', 'border-green-500/30', 'text-green-300');
+                strongList.appendChild(badge);
+            }
+        });
+
+        if (weakList.children.length === 0) {
+            weakList.innerHTML = '<span class="text-slate-400 text-sm">No weak subjects! You are doing great.</span>';
+        }
+
+        // Render Chart
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Score Percentage',
+                    data: scores,
+                    backgroundColor: 'rgba(99, 102, 241, 0.5)',
+                    borderColor: 'rgba(99, 102, 241, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        max: 100,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: 'rgba(255, 255, 255, 0.7)' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+        
+    } catch(e) {
+        console.error("Failed to load analytics");
+    }
+}
+
+function practiceWeakest() {
+    if (weakSubjectsList.length > 0) {
+        document.getElementById('subject').value = weakSubjectsList[0];
+        document.getElementById('subject').focus();
+    }
+}
+
+async function startQuiz() {
+    const btn = document.getElementById('gen-btn');
+    btn.innerText = "Processing AI Logic...";
+    btn.disabled = true;
+
+    const data = {
+        exam: document.getElementById('exam').value,
+        subject: document.getElementById('subject').value || "General Aptitude",
+        difficulty: "Competitive"
+    };
+    
+    try {
+        const response = await fetch('/generate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        const questions = await response.json();
+        localStorage.setItem('currentQuiz', JSON.stringify(questions));
+        localStorage.setItem('currentExam', data.exam);
+        localStorage.setItem('currentSubject', data.subject);
+        window.location.href = '/quiz-page';
+    } catch (err) {
+        alert("Check API connection.");
+        btn.innerText = "Generate Quiz";
+        btn.disabled = false;
+    }
+}
+
+// Load analytics on start
+document.addEventListener("DOMContentLoaded", loadAnalytics);
+</script>
+{% endblock %}

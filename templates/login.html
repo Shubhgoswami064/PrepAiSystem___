@@ -1,31 +1,45 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Login</title>
- <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
-</head>
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto w-full pt-10">
+    <div class="glass p-10 md:p-12 rounded-[2.5rem] relative overflow-hidden animate-fade-in-up shadow-2xl">
+        <!-- Decorative Glow -->
+        <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/30 rounded-full blur-[50px] pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-500/20 rounded-full blur-[50px] pointer-events-none"></div>
 
-<body>
+        <div class="text-center mb-10 relative z-10">
+            <h2 class="text-4xl font-black text-white mb-3">Welcome Back</h2>
+            <p class="text-slate-400 text-sm">Sign in to continue your preparation journey.</p>
+        </div>
 
-<h2>Login</h2>
+        {% if msg %}
+        <div class="bg-red-500/10 border border-red-500/50 text-red-400 text-sm px-4 py-3 rounded-xl mb-6 text-center animate-fade-in-up">
+            {{ msg }}
+        </div>
+        {% endif %}
 
-{% if msg %}
-<p style="color:red">{{msg}}</p>
-{% endif %}
+        <form method="POST" class="space-y-6 relative z-10">
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-indigo-400 uppercase tracking-widest pl-1">Email Address</label>
+                <input type="email" name="email" placeholder="you@example.com" required 
+                    class="w-full bg-black/40 border border-white/10 p-4 rounded-2xl focus:border-indigo-500 focus:bg-indigo-500/5 focus:outline-none transition-all text-white placeholder-slate-600">
+            </div>
 
-<form method="POST">
+            <div class="space-y-2">
+                <div class="flex justify-between items-center pl-1">
+                    <label class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Password</label>
+                </div>
+                <input type="password" name="password" placeholder="••••••••" required 
+                    class="w-full bg-black/40 border border-white/10 p-4 rounded-2xl focus:border-indigo-500 focus:bg-indigo-500/5 focus:outline-none transition-all text-white placeholder-slate-600">
+            </div>
 
-<input type="email" name="email" placeholder="Email" required>
-<br><br>
+            <button type="submit" class="w-full btn-gradient py-4 rounded-2xl font-black text-white text-lg shadow-lg hover:shadow-indigo-500/25 hover:-translate-y-0.5 active:translate-y-0 transition-all mt-4">
+                Sign In
+            </button>
+        </form>
 
-<input type="password" name="password" placeholder="Password" required>
-<br><br>
-
-<button id="sub" type="submit">Login</button>
-
-</form>
-
-<a href="/">Back</a>
-
-</body>
-</html>
+        <p class="text-center text-sm text-slate-400 mt-8 relative z-10">
+            Don't have an account? <a href="{{ url_for('signup') }}" class="text-indigo-400 font-bold hover:text-indigo-300 transition-colors">Sign up</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
